@@ -23,7 +23,7 @@ def open_file(file):
             l_transcription.append(x[2])
     return l_path, l_audio, l_transcription, l_sr
 
-def main(data_file="/nfs/RESEARCH/crego/projects/pakita_fra-cts/segments_filtered.map",
+def main(data_file="segments_filtered.map",
          output_train='data/train.hf',
          output_val='data/val.hf'):
     print('loading...')
@@ -45,7 +45,7 @@ def test(data_file, output):
 
 
 if __name__=='__main__':
-    main(data_file="/nfs/RESEARCH/crego/projects/pakita_fra-cts/segments.map",
+    main(data_file="segments.map",
          output_train='new_data/train.hf',
          output_val='new_data/val.hf')
     
