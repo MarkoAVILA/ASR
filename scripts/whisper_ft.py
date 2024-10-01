@@ -16,8 +16,6 @@ from functools import partial
 import numpy as np
 from transformers import Seq2SeqTrainingArguments
 from transformers import Seq2SeqTrainer
-import sys
-sys.path.append("/nfs/RESEARCH/avila/Projects/SPEECH2TEXT/ASR")
 from wer_metric import WER, WER_NORM
 from sacrebleu import corpus_bleu
 import copy
