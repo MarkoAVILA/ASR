@@ -1,0 +1,7 @@
+Loading....
+0it [00:00, ?it/s]4718it [00:00, 334930.97it/s]
+Building...
+Casting...
+Casting the dataset:   0%|          | 0/4718 [00:00<?, ? examples/s]Casting the dataset: 100%|██████████| 4718/4718 [00:00<00:00, 655711.80 examples/s]
+Saving the dataset (0/1 shards):   0%|          | 0/4718 [00:00<?, ? examples/s]Saving the dataset (0/1 shards):  21%|██        | 1000/4718 [00:00<00:03, 1234.68 examples/s]Saving the dataset (0/1 shards):  42%|████▏     | 2000/4718 [00:01<00:01, 1428.75 examples/s]Saving the dataset (0/1 shards):  64%|██████▎   | 3000/4718 [00:02<00:01, 1331.81 examples/s]Saving the dataset (0/1 shards):  85%|████████▍ | 4000/4718 [00:02<00:00, 1458.23 examples/s]Saving the dataset (0/1 shards): 100%|██████████| 4718/4718 [00:03<00:00, 1551.33 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4718/4718 [00:05<00:00, 1551.33 examples/s]Saving the dataset (1/1 shards): 100%|██████████| 4718/4718 [00:05<00:00, 832.10 examples/s] 
+Saved!
