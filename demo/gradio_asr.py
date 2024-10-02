@@ -2,8 +2,8 @@ from transformers import pipeline
 import gradio as gr
  
 pipe = pipeline(
-    model='whisper_small_atco2/best_model',
-    tokenizer='whisper_small_atco2/best_model',
+    model='whisper-ft',
+    tokenizer='tokenizer_whisper_ft',
     task='automatic-speech-recognition',
     device='cuda'
 ) 
