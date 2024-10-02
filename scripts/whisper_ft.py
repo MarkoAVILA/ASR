@@ -84,10 +84,14 @@ class WHISPER_FT:
         self.model.config.forced_decoder_ids = None #Remove forced_decoder_ids when using task="transcribe" to avoid conflicts.
         self.model.config.suppress_tokens = []
 
-    
+    def change_type_audio(self, example):
+        example['audio']['array'] = np.array(example['audio']['array'], dtype='float32')
+        return example
     def loading_dataset(self):
         dataset_voice = DatasetDict()
-        dataset_train, dataset_validation = datasets.load_from_disk(self.data_train), datasets.load_from_disk(self.data_val)
+        dataset_train, dataset_validation= datasets.load_from_disk(self.data_train), datasets.load_from_disk(self.data_val)
+        dataset_train = dataset_train.map(self.change_type_audio)
+        dataset_validation = dataset_validation.map(self.change_type_audio) 
         dataset_voice['train'] = dataset_train
         dataset_voice["validation"] = dataset_validation
         print("nb samples train:", len(dataset_train), flush=True)
@@ -106,7 +110,7 @@ class WHISPER_FT:
     def feature_extractor(self, example):
         # self.processor.tokenizer.set_prefix_tokens(language=example["tgt_lang"], task='transcribe')
         example_audio, sentence = example['audio'], example["transcription"]
-        audio, sr = np.array(example_audio['array']), example_audio["sampling_rate"]
+        audio, sr = np.array(example_audio['array'], dtype='float32'), example_audio["sampling_rate"]
         example = self.processor(
             audio = audio,
             sampling_rate = sr,
@@ -208,6 +212,8 @@ class WHISPER_FT:
             push_to_hub=push_to_hub,
             remove_unused_columns=False
             )
+        print(learning_rate)
+        print(type(learning_rate))
         
         dataset_train, dataset_test = self.building_dataset_voice()
 
