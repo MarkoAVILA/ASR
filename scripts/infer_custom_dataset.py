@@ -3,63 +3,66 @@ import torch
 import evaluate
 import datasets
 from custom_dataset import iter_dataset
+from asr_metrics import *
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 from sacrebleu import corpus_bleu
 import logging
 logger = logging.getLogger("transformers") # Get the Transformers logger instance
 logger.setLevel(logging.INFO)
 
+class CUSTOMINFERENCE:
+    def __init__(self, map_data, model_name, data_hf=None, task='transcribe', language='french', 
+    skip_special_toks=True, timestamps=False):
 
-def main(model,map_data, output, language="catalan", skip_special_toks=True,timestamps=False, output_reference=True):
-    # CUDA or not CUDA
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    logger.info(f'device is {device}')
-    # torch_dtype = torch.float32 #torch.float16 if torch.cuda.is_available() else torch.float32
-    # dataset_voice = load_dataset(data_id, code_lang, data_dir=data_dir)
+    self.task = task
+    self.skip_special_toks = skip_special_toks
+    self.timestamps = timestamps
+    self.device = "cuda" if torch.cuda.is_available() else 'cpu'
+    logging.info(f'Device is {self.device}')
+    logging.info(f'Loading {model_name}... model')
+    self.model = WhisperForConditionalGeneration.from_pretrained(model_name)
+    logging.info(f'Model loaded!')
+    self.model.config.use_cache = True
+    self.model.to(device)
+    logging.info(f'Loading Processor whisper ...')
+    processor = WhisperProcessor.from_pretrained(model_name, language=language, task=task, predict_timestamps=timestamps)
+    logging.info(f'Porcessor loaded!')
+    if self.task!='transcribe':
+        self.model.config.forced_decoder_ids = None ### initially no token is forced in generation (context tokens)
+    self.model.generation_config.task = "transcribe"
 
-    # Load model and processor
-    processor = WhisperProcessor.from_pretrained(model, language=language, task='transcribe', predict_timestamps=timestamps)
-    model= WhisperForConditionalGeneration.from_pretrained(model)
-    model.config.use_cache = True
-    model.to(device)
+    logging.info(f'Loading Dataset...')
+    if data_hf is None:
+        self.ds = iter_dataset(map_data)
+    else:
+        self.ds = data_hf
+    logger.info('Dataset with {} elements'.format(len(self.ds)))
 
-    # indicate context tokens for generation (the next 4 lines are not needed if language,task,timestamps are passed in model.generate)
-    # model.config.forced_decoder_ids = None ### initially no token is forced in generation (context tokens)
-    model.generation_config.task = "transcribe"
-    
-   
-    # load dataset and read audio files
-    logger.info('Loading Dataset upsampling to 16KHz')
-    ds = iter_dataset(map_data)
-    logger.info('Dataset with {} elements'.format(len(ds)))
-    logger.info('resampled to 16k')
-    print(ds)
-
-    fout=open(output, 'w')
-    fwer=open(output+".wer", 'w')
-
-    refs = []
-    preds = []
-    for i in range(len(ds)):
-        input_features = processor(ds[i]["audio"]['array'], sampling_rate=ds[i]["audio"]["sampling_rate"], return_tensors="pt").input_features
-        input_features = input_features.to(device)
-        predicted_ids = model.generate(input_features, task='transcribe', language=ds[i]["tgt_lang"], return_timestamps=timestamps)
-        transcription = processor.batch_decode(predicted_ids, skip_special_tokens=skip_special_toks)[0].strip()
-        preds.append(transcription)
-        if data_ref in ds[i]:
-            refs.append(ds[i][data_ref])
-
-        fout.write(transcription + ('\t'+ds[i][data_ref] if output_reference and data_ref in ds[i] else '') + "\n")
-        fout.flush()
-        logger.info(transcription)
-
-    if len(refs):
-        metric = evaluate.load("wer")
-        wer = 100 * metric.compute(predictions=preds, references=refs)
-        fwer.write('wer: {:.2f}\n'.format(wer))
-        bleu = round(corpus_bleu(preds, [refs]).score,3)
-        fbleu.write('bleu:{:.3f}\n'.format(bleu))
+    def inference(self,output):
+        f_out = open(output,'w')
+        preds = []
+        refs = []
+        for el in range(len(self.ds)):
+            input_features = processor(self.ds[i]["audio"]['array'], sampling_rate=self.ds[i]["audio"]["sampling_rate"], return_tensors="pt").input_features
+            input_features = input_features.to(self.device)
+            predicted_ids = model.generate(input_features, task="transcribe", language=self.ds[i]["tgt_lang"], return_timestamps=self.timestamps)
+            transcription = processor.batch_decode(predicted_ids, skip_special_tokens=self.skip_special_toks)[0].strip()
+            preds.append(transcription)
+            if self.task=='transcribe':
+                refs.append(ds[i]['transcription'])
+            else:
+                refs.append(ds[i]['translation'])
+            f_out.write(preds[-1] + ('\t'+refs[-1] if self.refs else '') + "\n")
+            f_out.flush()
+        logging.info("Calculating metrics for ASR...")
+        logging.info(f"WER ortographique: {WER(preds, refs)}")
+        logging.info(f"WER normalisé: {WER_NORM(preds, refs)}")
+        ogging.info(f"CER: {CER(preds, refs)}")
+        logging.info(f"CER normalisé: {CER_NORM(preds, refs)}")
+        if self.task!='transcribe':
+            bleu = round(corpus_bleu(preds, [refs]).score,3)
+            logging.info(f"BLEU: {bleu}")
 
         
 if __name__=="__main__":
-    fire.Fire(main)
+    fire.Fire(CUSTOMINFERENCE)
