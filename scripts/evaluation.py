@@ -1,6 +1,7 @@
 import fire 
 from asr_metrics import *
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def open_file(file):
     preds,refs = [], []
@@ -45,8 +46,20 @@ class EVALUATE:
 
     def graphique(self, list_names):
         wer, wer_norm, cer, cer_norm = self.calculate_metrics()
-        df = pd.DataFrame.from_dict({"wer":wer, "wer_norm":wer_norm, "cer":cer, "cer_norm":cer_norm}, columns=list_names.split(','))
+        df = pd.DataFrame.from_dict({"wer":wer, "wer_norm":wer_norm, "cer":cer, "cer_norm":cer_norm})
+        df.index = list(list_names)
         print(df)
+        df.to_csv('results.csv', index=True)
+        # Graficar un diagrama de barras usando los índices como eje X
+        df.plot(kind='bar', legend=True)
+
+        # Añadir etiquetas y título
+        plt.xlabel('whisper models')
+        plt.ylabel('metrics')
+        plt.title('Evaluation du testset PCKT')
+
+        # Guardar el gráfico
+        plt.savefig('results.png')
 
 if __name__=='__main__':
     fire.Fire(EVALUATE)
