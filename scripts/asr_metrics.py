@@ -33,10 +33,10 @@ def WER_NORM(pred_str, label_str):
         return wer
 
 def CER(pred_str, label_str):
-    cer = CER_METRIC.compute(references=label_str, predictions=pred_str)
+    cer = 100*CER_METRIC.compute(references=label_str, predictions=pred_str)
     return cer
 
 def CER_NORM(pred_str, label_str):
     pred_norm, label_norm = normalization_(pred_str, label_str)
-    cer_norm = CER_METRIC.compute(references=label_norm, predictions=pred_norm)
+    cer_norm = 100*CER_METRIC.compute(references=label_norm, predictions=pred_norm)
     return cer_norm

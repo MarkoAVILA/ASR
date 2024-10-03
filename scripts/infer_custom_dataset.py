@@ -1,6 +1,5 @@
 import fire
 import torch
-import evaluate
 import datasets
 from custom_dataset import iter_dataset
 from asr_metrics import *
@@ -57,14 +56,14 @@ class CUSTOMINFERENCE:
                 refs.append(el['translation'])
             f_out.write(preds[-1] + ('\t'+refs[-1] if self.reference else '') + "\n")
             f_out.flush()
-        logging.info("Calculating metrics for ASR...")
-        logging.info(f"WER ortographique: {WER(preds, refs)}")
-        logging.info(f"WER normalisé: {WER_NORM(preds, refs)}")
-        logging.info(f"CER: {CER(preds, refs)}")
-        logging.info(f"CER normalisé: {CER_NORM(preds, refs)}")
+        print("Calculating metrics for ASR...")
+        print(f"WER ortographique: {WER(preds, refs)}")
+        print(f"WER normalisé: {WER_NORM(preds, refs)}")
+        print(f"CER: {CER(preds, refs)}")
+        print(f"CER normalisé: {CER_NORM(preds, refs)}")
         if self.task!='transcribe':
             bleu = round(corpus_bleu(preds, [refs]).score,3)
-            logging.info(f"BLEU: {bleu}")
+            print(f"BLEU: {bleu}")
 
         
 if __name__=="__main__":
