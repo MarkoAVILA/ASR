@@ -1,28 +1,19 @@
 import fire
-import pandas as pd
-from datasets import load_dataset, DatasetDict
-from datasets import Dataset
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers import WhisperProcessor, WhisperTokenizer
 from transformers import WhisperForConditionalGeneration
-from datasets import Audio
+from custom_dataset import iter_dataset
 import datasets
 import torch
 import torch.nn as nn
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
-from typing import Optional, Tuple, Union
-from functools import partial
 import numpy as np
 from transformers import Seq2SeqTrainingArguments
 from transformers import Seq2SeqTrainer
 from wer_metric import WER, WER_NORM
 from sacrebleu import corpus_bleu
-import copy
-from transformers import AutoTokenizer, AutoModel, BertModel
-from custom_dataset import get_dataset_augmented
 
-MAX_INPUT_LENGTH = 30.0
 
 
 @dataclass
@@ -87,25 +78,20 @@ class WHISPER_FT:
     def change_type_audio(self, example):
         example['audio']['array'] = np.array(example['audio']['array'], dtype='float32')
         return example
+    
     def loading_dataset(self):
-        dataset_voice = DatasetDict()
-        dataset_train, dataset_validation= datasets.load_from_disk(self.data_train), datasets.load_from_disk(self.data_val)
-        dataset_train = dataset_train.map(self.change_type_audio)
-        dataset_validation = dataset_validation.map(self.change_type_audio) 
-        dataset_voice['train'] = dataset_train
-        dataset_voice["validation"] = dataset_validation
-        print("nb samples train:", len(dataset_train), flush=True)
-        print("nb samples valid:", len(dataset_validation),flush=True)
-        return dataset_voice
-    
-    
-    def undersampling(self):
-        sampling_rate = 16000 #self.processor.feature_extractor.sampling_rate
-        dataset_voice = self.loading_dataset()
+        if '.hf' in self.data_train or '.hf' in self.data_val:
+            dataset_train, dataset_validation= datasets.load_from_disk(self.data_train), datasets.load_from_disk(self.data_val)
+            print("nb samples train:", len(dataset_train), flush=True)
+            print("nb samples valid:", len(dataset_validation),flush=True)
+        else:
+            dataset_train, dataset_validation = iter_dataset(self.data_train), iter_dataset(self.data_val, type='test')
+            print("example de train", next(iter(dataset_train)), flush=True)
+            print("example de validation", next(iter(dataset_validation)), flush=True)
+
         print("dataset loaded!", flush=True)
-        dataset_voice = dataset_voice.cast_column('audio', Audio(sampling_rate=sampling_rate))
-        print("dataset casted!", flush=True)
-        return dataset_voice
+        return dataset_train, dataset_validation
+    
     
     def feature_extractor(self, example):
         # self.processor.tokenizer.set_prefix_tokens(language=example["tgt_lang"], task='transcribe')
@@ -121,30 +107,15 @@ class WHISPER_FT:
 
         return example
 
-    def is_audio_in_length_range(self,length):
-        return length < MAX_INPUT_LENGTH
-    
     def selection(self, tgt_lang):
         return tgt_lang==self.langue_1
     
     def building_dataset_voice(self):
-        dataset_voice = self.undersampling()
-        dataset_voice['train'] = dataset_voice['train']
-        dataset_voice["validation"] = dataset_voice['validation'].filter(self.selection, input_columns=["tgt_lang"])
-        dataset_voice["train"] = dataset_voice['train'].shuffle(seed=42)
-        print("dataset train shuffled!", flush=True)
-        dataset_voice_train = dataset_voice['train'].to_iterable_dataset()
-        dataset_voice_test = dataset_voice['validation'].to_iterable_dataset()
-        dataset_voice_train = dataset_voice_train.map(self.feature_extractor, 
-                                          remove_columns=dataset_voice.column_names["train"]
-                                          )
-        dataset_voice_test = dataset_voice_test.map(self.feature_extractor, 
-                                          remove_columns=dataset_voice.column_names["train"]
-                                          )
-        
-        dataset_voice_train = dataset_voice_train.filter(self.is_audio_in_length_range, 
-                                                     input_columns=["input_length"],
-                                            )
+        dataset_train, dataset_validation = self.loading_dataset()
+        dataset_validation = dataset_validation.filter(self.selection, input_columns=["tgt_lang"])
+        dataset_voice_train = dataset_train.map(self.feature_extractor)
+        dataset_voice_test = dataset_validation.map(self.feature_extractor)
+        print("Mapping features extractor done!", flush=True)
         return dataset_voice_train, dataset_voice_test
 
     def compute_metrics(self, pred):

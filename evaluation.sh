@@ -1,0 +1,1 @@
+python3 scripts/evaluation.py graphique --file "transcriptions/pckt.whisper.medium,transcriptions/pckt.whisper.largev2,transcriptions/pckt.whisper.largev3" --list_names "medium,largev2,largev3"
