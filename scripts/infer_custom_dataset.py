@@ -31,7 +31,7 @@ class CUSTOMINFERENCE:
 
         logging.info(f'Loading Dataset...')
         if data_hf is None:
-            self.ds = iter_dataset(map_data)
+            self.ds = iter_dataset(map_data, type='test')
             cpt = 0
             for _ in self.ds:
                 cpt+=1
