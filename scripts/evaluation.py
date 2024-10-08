@@ -44,7 +44,7 @@ class EVALUATE:
             print(f"CER: {cer[i]}")
             print(f"CER normalisé: {cer_norm[i]}")
 
-    def graphique(self, list_names, name_graph='results.png', name_df='results.csv'):
+    def graphique(self, list_names, name_graph='results.png', name_df='results.csv', title='Evaluation du testset PCKT(5039)'):
         wer, wer_norm, cer, cer_norm = self.calculate_metrics()
         df = pd.DataFrame.from_dict({"wer":wer, "wer_norm":wer_norm, "cer":cer, "cer_norm":cer_norm})
         df.index = list(list_names)
@@ -56,7 +56,7 @@ class EVALUATE:
         # Añadir etiquetas y título
         plt.xlabel('whisper models', fontsize=14)
         plt.ylabel('Metrics', fontsize=14)
-        plt.title('Evaluation du testset PCKT(5039)', fontsize=16)
+        plt.title(title, fontsize=16)
 
         # Rotating x-axis labels to avoid overlap (if necessary)
         plt.xticks(rotation=45, ha='right', fontsize=12)
