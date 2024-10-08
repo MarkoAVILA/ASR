@@ -44,22 +44,34 @@ class EVALUATE:
             print(f"CER: {cer[i]}")
             print(f"CER normalisé: {cer_norm[i]}")
 
-    def graphique(self, list_names):
+    def graphique(self, list_names, name_graph='results.png', name_df='results.csv'):
         wer, wer_norm, cer, cer_norm = self.calculate_metrics()
         df = pd.DataFrame.from_dict({"wer":wer, "wer_norm":wer_norm, "cer":cer, "cer_norm":cer_norm})
         df.index = list(list_names)
         print(df)
-        df.to_csv('results.csv', index=True)
+        df.to_csv(name_df, index=True)
         # Graficar un diagrama de barras usando los índices como eje X
-        df.plot(kind='bar', legend=True)
+        ax = df.plot(kind='bar', legend=True, figsize=(12,12))
 
         # Añadir etiquetas y título
-        plt.xlabel('whisper models')
-        plt.ylabel('metrics')
-        plt.title('Evaluation du testset PCKT')
+        plt.xlabel('whisper models', fontsize=14)
+        plt.ylabel('Metrics', fontsize=14)
+        plt.title('Evaluation du testset PCKT(4718)', fontsize=16)
+
+        # Rotating x-axis labels to avoid overlap (if necessary)
+        plt.xticks(rotation=45, ha='right', fontsize=12)
+
+        # Adding a grid for better readability
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+        # Añadir los valores encima de cada barra
+        for container in ax.containers:
+            ax.bar_label(container, fmt='%.2f', fontsize=12, padding=3)  # Mostrar los valores con dos decimales
+
+        # Show the plot
+        plt.tight_layout()
 
         # Guardar el gráfico
-        plt.savefig('results.png')
+        plt.savefig(name_graph)
 
 if __name__=='__main__':
     fire.Fire(EVALUATE)
