@@ -6,6 +6,8 @@ WER_METRIC = evaluate.load("wer", max_concurrent_cache_files=20000)
 NORMALIZER = BasicTextNormalizer()
 
 def normalization_(pred_str, label_str):
+    pred_str = [i.strip() for i in pred_str]
+    label_str = [i.strip() for i in label_str]
     pred_str_norm = [NORMALIZER(pred) for pred in pred_str]
     label_str_norm = [NORMALIZER(label) for label in label_str]
     # afin de n'évaluer que les échantillons correspondant à des références non nulles

@@ -56,7 +56,7 @@ class EVALUATE:
         # Añadir etiquetas y título
         plt.xlabel('whisper models', fontsize=14)
         plt.ylabel('Metrics', fontsize=14)
-        plt.title('Evaluation du testset PCKT(4718)', fontsize=16)
+        plt.title('Evaluation du testset PCKT(5039)', fontsize=16)
 
         # Rotating x-axis labels to avoid overlap (if necessary)
         plt.xticks(rotation=45, ha='right', fontsize=12)
