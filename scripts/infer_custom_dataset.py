@@ -10,7 +10,7 @@ logger = logging.getLogger("transformers") # Get the Transformers logger instanc
 logger.setLevel(logging.INFO)
 
 class CUSTOMINFERENCE:
-    def __init__(self, map_data, model_name, data_hf=None, task='transcribe', language='french', skip_special_toks=True, timestamps=False, refs=True):
+    def __init__(self, map_data, model_name, model_base, data_hf=None, task='transcribe', language='french', skip_special_toks=True, timestamps=False, refs=True):
         self.task = task
         self.reference = refs
         self.skip_special_toks = skip_special_toks
@@ -23,7 +23,7 @@ class CUSTOMINFERENCE:
         self.model.config.use_cache = True
         self.model.to(self.device)
         logging.info(f'Loading Processor whisper ...')
-        self.processor = WhisperProcessor.from_pretrained(model_name, language=language, task=task, predict_timestamps=timestamps)
+        self.processor = WhisperProcessor.from_pretrained(model_base, language=language, task=task, predict_timestamps=timestamps)
         logging.info(f'Porcessor loaded!')
         if self.task!='transcribe':
             self.model.config.forced_decoder_ids = None ### initially no token is forced in generation (context tokens)
