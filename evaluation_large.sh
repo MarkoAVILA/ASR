@@ -1,0 +1,1 @@
+python3 scripts/evaluation_large_segments.py graphique --path_audio segments_channels/separate_audio.txt --patern "small-ft,medium-ft" --name_df "results/result_large_segments.csv" --title "Evaluation du testset PCKT(14 audios stereo)" --name_graph "results/result_large_segments.png"
