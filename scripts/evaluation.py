@@ -44,14 +44,16 @@ class EVALUATE:
             print(f"CER: {cer[i]}")
             print(f"CER normalisé: {cer_norm[i]}")
 
-    def graphique(self, list_names, name_graph='results.png', name_df='results.csv', title='Evaluation du testset PCKT(5039)'):
+    def graphique(self, list_names, name_graph='results.png', name_df='results.csv', title='Evaluation du testset PCKT(5039)',cols_sel='WER,WER_NORM,CER,CER_NORM'):
         wer, wer_norm, cer, cer_norm = self.calculate_metrics()
+        cols_sel = list(cols_sel)
+        cols_sel = [i.lower() for i in cols_sel]
         df = pd.DataFrame.from_dict({"wer":wer, "wer_norm":wer_norm, "cer":cer, "cer_norm":cer_norm})
         df.index = list(list_names)
         print(df)
-        df.to_csv(name_df, index=True)
+        df[cols_sel].to_csv(name_df, index=True)
         # Graficar un diagrama de barras usando los índices como eje X
-        ax = df.plot(kind='bar', legend=True, figsize=(12,12))
+        ax = df[cols_sel].plot(kind='bar', legend=True, figsize=(12,12))
 
         # Añadir etiquetas y título
         plt.xlabel('whisper models', fontsize=14)
