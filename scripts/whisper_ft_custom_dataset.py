@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Union
 import numpy as np
 from transformers import Seq2SeqTrainingArguments
 from transformers import Seq2SeqTrainer
-from wer_metric import WER, WER_NORM
+from asr_metrics import WER, WER_NORM
 from sacrebleu import corpus_bleu
 
 
@@ -46,10 +46,9 @@ class DataCollatorSpeechSeq2SeqWithPadding:
     
 
 class WHISPER_FT:
-    def __init__(self, path_model, data_train, data_val, num_proc, langue_1="catalan", type_task="Speech2Text") -> None:
+    def __init__(self, path_model, data_train, data_val, num_proc, langue_1="catalan") -> None:
 
         self.num_proc = num_proc
-        self.type_task = type_task
         self.langue_1 = langue_1
         self.path_model = path_model
         self.data_train = data_train
@@ -65,7 +64,6 @@ class WHISPER_FT:
         self.model = WhisperForConditionalGeneration.from_pretrained(self.path_model)
     
         self.processor = WhisperProcessor.from_pretrained(self.path_model, language=self.langue_1, task="transcribe")
-        self.processor_1 = WhisperProcessor.from_pretrained(self.path_model, language=self.langue_1, task="transcribe")
         self.data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=self.processor)
 
         # désactiver le cache pendant l'entraînement car il est incompatible avec le checkpointing du gradient
@@ -75,9 +73,6 @@ class WHISPER_FT:
         self.model.config.forced_decoder_ids = None #Remove forced_decoder_ids when using task="transcribe" to avoid conflicts.
         self.model.config.suppress_tokens = []
 
-    def change_type_audio(self, example):
-        example['audio']['array'] = np.array(example['audio']['array'], dtype='float32')
-        return example
     
     def loading_dataset(self):
         if '.hf' in self.data_train or '.hf' in self.data_val:
@@ -96,7 +91,7 @@ class WHISPER_FT:
     def feature_extractor(self, example):
         # self.processor.tokenizer.set_prefix_tokens(language=example["tgt_lang"], task='transcribe')
         example_audio, sentence = example['audio'], example["transcription"]
-        audio, sr = np.array(example_audio['array'], dtype='float32'), example_audio["sampling_rate"]
+        audio, sr = example_audio['array'], example_audio["sampling_rate"]
         example = self.processor(
             audio = audio,
             sampling_rate = sr,
@@ -106,13 +101,9 @@ class WHISPER_FT:
         example["input_length"] = len(audio) / sr
 
         return example
-
-    def selection(self, tgt_lang):
-        return tgt_lang==self.langue_1
     
     def building_dataset_voice(self):
         dataset_train, dataset_validation = self.loading_dataset()
-        dataset_validation = dataset_validation.filter(self.selection, input_columns=["tgt_lang"])
         dataset_voice_train = dataset_train.map(self.feature_extractor)
         dataset_voice_test = dataset_validation.map(self.feature_extractor)
         print("Mapping features extractor done!", flush=True)
@@ -183,10 +174,9 @@ class WHISPER_FT:
             push_to_hub=push_to_hub,
             remove_unused_columns=False
             )
-        print(learning_rate)
-        print(type(learning_rate))
         
         dataset_train, dataset_test = self.building_dataset_voice()
+        print("lr:", learning_rate)
 
         self.processor.tokenizer.set_prefix_tokens(language=self.langue_1, task='transcribe') #language may be None
         trainer = Seq2SeqTrainer(
