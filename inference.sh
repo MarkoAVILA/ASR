@@ -1,9 +1,11 @@
 echo 'Inference with Whisper Models'
-MAP_DATA='data/test.map'
-MODEL_NAME='openai/whisper-large-v3' #'openai/whisper-large-v2' #'openai/whisper-medium'
+MAP_DATA='data/new_test.map'
+MODEL_NAME="/nfs/RESEARCH/avila/Projects/SPEECH2TEXT/ASR/ASR_PHONE/whisper-ft-medium_2/checkpoint-28000" #"/nfs/RESEARCH/crego/projects/pakita_fra-cts/new/small-pakita-fr/checkpoint-24000" #'openai/whisper-large-v3' #'openai/whisper-large-v2' #'openai/whisper-medium'
 TASK='transcribe'
 LAN='french'
-OUT='transcriptions/pckt.whisper.largev3' #'transcriptions/pckt.whisper.largev2' #'transcriptions/pckt.whisper.medium'
-# nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.whisper.medium & 
-# nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.whisper.largev2 &
-nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.whisper.largev3 & 
+OUT='transcriptions/pckt.new.whisper.medium-ft' #'transcriptions/pckt.new.whisper.small-ft' #'transcriptions/pckt.new.whisper.largev3' #'transcriptions/pckt.whisper.medium' #'transcriptions/pckt.new.whisper.largev2'
+# nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.new.whisper.medium & 
+# CUDA_VISIBLE_DEVICES=1 nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.new.whisper.largev2 &
+# CUDA_VISIBLE_DEVICES=1 nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --task $TASK --language $LAN --output $OUT > logs/pckt_infer.new.whisper.largev3 & 
+# CUDA_VISIBLE_DEVICES=1 nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --model_base "openai/whisper-small" --task $TASK --language $LAN --output $OUT > logs/pckt_infer.new.whisper.small-ft & 
+CUDA_VISIBLE_DEVICES=1 nohup python3 scripts/infer_custom_dataset.py inference --map_data $MAP_DATA --model_name $MODEL_NAME --model_base "openai/whisper-medium" --task $TASK --language $LAN --output $OUT > logs/pckt_infer.new.whisper.medium-ft & 
