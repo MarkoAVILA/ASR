@@ -52,11 +52,12 @@ def iter_dataset(file_map, type='train'):
     if type=='train':
         ds = ds.shuffle(seed=42)
         print('dataset shuffled!', flush=True)
-    ds = ds.to_iterable_dataset()
     ds = ds.cast_column("audio", Audio(sampling_rate=16000))
     ds = ds.cast_column('transcription', Value('string'))
     ds = ds.cast_column('tgt_lang', Value('string'))
-    ds = ds.filter(is_audio_in_length_range)
+    ds = ds.to_iterable_dataset()
+    if type=='train':
+        ds = ds.filter(is_audio_in_length_range)
     print('Iterable dataset done!')
     return ds
 

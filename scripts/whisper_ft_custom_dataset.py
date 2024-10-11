@@ -25,8 +25,8 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         # traiter d'abord les entrées audio en renvoyant simplement des tenseurs Torch
         input_features = [{"input_features": feature["input_features"][0]} for feature in features]
         batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
-        print("BATCH")
-        print(batch["input_features"].shape)
+        # print("BATCH")
+        # print(batch["input_features"].shape)
         # obtenir les séquences d'étiquettes tokenisées
         label_features = [{"input_ids": feature["labels"]} for feature in features]
         # rembourrer les étiquettes à la longueur maximale
@@ -40,7 +40,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
             labels = labels[:, 1:]
 
         batch["labels"] = labels
-        print(batch["labels"].shape)
+        # print(batch["labels"].shape)
 
         return batch
     
@@ -103,9 +103,9 @@ class WHISPER_FT:
         return example
     
     def building_dataset_voice(self):
-        dataset_train, dataset_validation = self.loading_dataset()
-        dataset_voice_train = dataset_train.map(self.feature_extractor)
-        dataset_voice_test = dataset_validation.map(self.feature_extractor)
+        dataset_voice_train, dataset_voice_test = self.loading_dataset()
+        dataset_voice_train = dataset_voice_train.map(self.feature_extractor)
+        dataset_voice_test = dataset_voice_test.map(self.feature_extractor)
         print("Mapping features extractor done!", flush=True)
         return dataset_voice_train, dataset_voice_test
 
